@@ -1,0 +1,20 @@
+{
+  "requires": true,
+  "lockfileVersion": 1,
+  "dependencies": {
+    "aion-rlp": "0.0.1",
+    "bignumber.js": "git+https://github.com/MikeMcl/bignumber.js.git",
+    "bn.js": "^4.11.8",
+    "chai": "^4.1.2",
+    "lodash": "^4.17.11",
+    "process": "^0.11.10",
+    "rlp": "^2.1.0",
+    "ws": "^6.0.0",
+    "xmlhttprequest": "^1.8.0",
+    "lodash":"*"
+  },
+  "scripts": {
+
+    "start": "node app.js"
+  }
+}
