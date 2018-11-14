@@ -15,13 +15,16 @@ console.log("[password]"+password);
 if(process.argv.length > 4){
 	amount = "0x"+parseInt(process.argv[4]).toString(16);
 }
+if(process.argv.length > 5){
+	accounts = [accounts[parseInt(process.argv[5])]];
+}
 
 console.log("[Each Tx amount]"+amount);
 
 async function addCoinsToAccount(){
 	await provider.sendRequest("unlockAccount","personal_unlockAccount",[originAcc,password,100]);
-	accounts.forEach(async(acc)=>{
-		await provider.sendRequest("loadMoney","eth_sendTransaction",[{from:originAcc, to:acc.addr, value: amount}]);
+	accounts.forEach(async(acc,index)=>{
+		await provider.sendRequest("loadMoney"+index,"eth_sendTransaction",[{from:originAcc, to:acc.addr, value: amount}]);
 	})
 }
 

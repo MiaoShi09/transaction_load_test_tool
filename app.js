@@ -8,16 +8,24 @@ var regTx = require("./regTx").getRandomTransaction;
 var cntTx = require('./cntTx');
 var provider = new Provider({type:"http"});
 
-var txNum, cntNum, sec;
+var txNum, cntNum, sec,default_gasPrice;
+var auto_stop = true;
 
 if(process.argv.length >=5){
 	txNum = parseInt(process.argv[2]);
 	cntNum = parseInt(process.argv[3]);
 	sec = parseInt(process.argv[4]);
 	if(process.argv.length >5){
-		let default_gasPrice = parseInt(process.argv[5]);
-		require("./regTx").DEFAULT_GAS_PRICE(default_gasPrice);
-		cntTx.DEFAULT_GAS_PRICE(default_gasPrice);
+		default_gasPrice = parseInt(process.argv[5]);
+		if(default_gasPrice !=NaN){
+			require("./regTx").DEFAULT_GAS_PRICE(default_gasPrice);
+			cntTx.DEFAULT_GAS_PRICE(default_gasPrice);
+		}else{
+			default_gasPrice = 10000000000;
+		}
+	}
+	if(process.argv.length >6){
+		auto_stop = typeof JSON.parse(process.argv[6]) == "boolean"? JSON.parse(process.argv[6]): auto_stop;
 	}
 	
 }else {
@@ -55,8 +63,33 @@ getAccountsNonces().then(()=>{
 		}
 		return Promise.all(txCollection);
 	}
+	let infinityLoop = setInterval(loop, sec*1000);
 
-	setInterval(loop, sec*1000);
+	if(auto_stop && cntNum >0){
 
-})
+		let stoppoint = 2+(default_gasPrice * accounts.length * 21000*(cntNum+txNum)*2).toString(16).length;
+		let owner = cntTx.owner().addr;
+		var checkBalLoop;
+		var checkBalanceLoop = ()=>{
+			console.log("\n\n\nI am in check balance interval\n\n\n"+stoppoint);
+			provider.sendRequest("check contract owner's balance","eth_getBalance",[owner]).then((resp)=>{
+				console.log(resp);
+				console.log(resp.result.length + "\n\n\n");
+				if(resp.result!==undefined && resp.result.length <= stoppoint){
+					console.log("\n !![Low Balance Warning] The contract owner's balance is relatively low.");
+					clearInterval(infinityLoop);
+					clearInterval(checkBalLoop);
+				}
+
+			},(err)=>{
+				console.log("\n [stop loop] terminate loop by error",error);
+				clearInterval(infinityLoop);
+				clearInterval(checkBalLoop);
+			})
+			return Promise.resolve();
+		}
+		checkBalLoop = setInterval(checkBalanceLoop, 10*1000)
+	}
+
+});
 

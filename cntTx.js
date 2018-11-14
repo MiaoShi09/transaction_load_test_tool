@@ -168,7 +168,7 @@ var _funcMap = {
 module.exports = {
 	deployContract:deployContract,
 	callARandomMethod:callARandomMethod,
-	owner:owner,
+	owner:()=>{return owner},
 	contractAddress: contractAddress,
 	DEFAULT_GAS_PRICE:(value)=>{DEFAULT_GAS_PRICE = value;}
 }
