@@ -2,7 +2,8 @@
 var utils = require("./utils/utils.js");
 var helper = require("./utils/helper.js");
 
-const DEFAULT_GAS = 41000;
+var DEFAULT_GAS = 21000;
+var DEFAULT_GAS_PRICE = 10000000000;
 
 function getRandomTransaction(accounts, provider){
 	let from, to;
@@ -22,9 +23,12 @@ function _randomTxObj(accounts,from,to){
 		to: accounts[to].addr,
 		value: utils.generateRandomNum(20000),
 		nonce: accounts[from].nonce++,
-		gasPrice: 0,
+		gasPrice: DEFAULT_GAS_PRICE,
 		gas: DEFAULT_GAS
 	}
 }
 
-module.exports = getRandomTransaction;
+module.exports = {
+	getRandomTransaction:getRandomTransaction,
+	DEFAULT_GAS_PRICE:(value)=>{DEFAULT_GAS_PRICE = value;}
+}

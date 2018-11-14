@@ -202,17 +202,6 @@ var encoder = (type, param)=>{
 		case "bool":
 			return padZeros(arrayify(bigNumberify(param?1:0).toTwos(128).maskn(128)), 16).toString("hex");
 		case "string":
-			// _encodeDynamicBytes(utils.toUtf8Bytes(value))
-			// console.log(typeof padZeros(arrayify(bigNumberify(param.length).toTwos(128).maskn(128)), 16));
-			// console.log(padZeros(arrayify(bigNumberify(param.length).toTwos(128).maskn(128)), 16));
-
-			// console.log(typeof toBuffer(toUtf8Bytes(param)));
-			// console.log(toBuffer(toUtf8Bytes(param)));
-
-			// console.log(typeof Buffer.alloc(32 * Math.ceil(param.length/32) - param.length));
-			// console.log(Buffer.alloc(32 * Math.ceil(param.length/32) - param.length));
-
-
 			let resb = Buffer.concat([
 					padZeros(arrayify(bigNumberify(param.length).toTwos(128).maskn(128)), 16),
 					toBuffer(toUtf8Bytes(param)),

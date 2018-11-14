@@ -8,7 +8,11 @@ var password='password'
 var funcs = [];
 var contractName, owner, _accounts,contractAddress;
 var _abi = {func:{},event:{},constructor:{}};
-const DEFAULT_GAS = 900000; 
+var MIN_GAS = 21000; //
+var MAX_GAS = 1000000//2000000;
+var DEFAULT_GAS_PRICE = 10000000000;
+
+
 
 
 async function deployContract(provider,accounts) {
@@ -38,7 +42,7 @@ async function deployContract(provider,accounts) {
 
 				}
 			});
-			console.log("\n\n\n\n\nabi\n\n\n\n\n\n");
+			//console.log("\n\n\n\n\nabi\n\n\n\n\n\n");
 			console.log(JSON.stringify(_abi));
 
 			owner = _accounts[utils.generateRandomNum(_accounts.length)-1];
@@ -48,15 +52,15 @@ async function deployContract(provider,accounts) {
 
 		
 	}).then(()=>{
-		let txObj = {
+		let deploy_txObj = {
 			data:code,
-			gasPrice:1,
-			gas:DEFAULT_GAS,
+			gasPrice:DEFAULT_GAS_PRICE,
+			gas:MIN_GAS*20,
 			nonce:owner.nonce++,
 			value:0
 		}
 		//console.log(utils.getRawTx(txObj,owner).rawTransaction);
-		return provider.sendRequest("deploy the contract", "eth_sendRawTransaction",[utils.getRawTx(txObj,owner).rawTransaction]);
+		return provider.sendRequest("deploy the contract", "eth_sendRawTransaction",[utils.getRawTx(deploy_txObj,owner).rawTransaction]);
 	}).then((resp)=>{
 		// get receipt
 		//console.log(resp);
@@ -103,17 +107,18 @@ async function callARandomMethod(provider){
 	
 	let oneFunc = funcs[utils.generateRandomNum(funcs.length)-1];
 	console.log("["+oneFunc+"] called :")
-	let txObj = {
+	let _txObj = {
 		to:contractAddress,
-		gasPrice:0,
+		gasPrice:DEFAULT_GAS_PRICE,
 		value:0,
-		gas: DEFAULT_GAS,
+		gas: MIN_GAS+5000+utils.generateRandomNum(MAX_GAS/2-MIN_GAS),
 		nonce:owner.nonce++,
 	};
 
-	txObj = helper.prepareContractCall(_funcMap[oneFunc](),txObj,_abi.func[oneFunc]);
 
-	let rawTx = utils.getRawTx(txObj,owner);
+	_txObj = helper.prepareContractCall(_funcMap[oneFunc](),_txObj,_abi.func[oneFunc]);
+
+	let rawTx = utils.getRawTx(_txObj,owner);
 	//console.log(rawTx.rawTransaction);
 	return provider.sendRequest(oneFunc,"eth_sendRawTransaction",[rawTx.rawTransaction]);
 };
@@ -164,5 +169,6 @@ module.exports = {
 	deployContract:deployContract,
 	callARandomMethod:callARandomMethod,
 	owner:owner,
-	contractAddress: contractAddress
+	contractAddress: contractAddress,
+	DEFAULT_GAS_PRICE:(value)=>{DEFAULT_GAS_PRICE = value;}
 }

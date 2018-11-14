@@ -4,17 +4,24 @@ var process = require('process');
 var accounts = require("./accounts.json");
 var contractAddresses;
 
-var regTx = require("./regTx");
+var regTx = require("./regTx").getRandomTransaction;
 var cntTx = require('./cntTx');
 var provider = new Provider({type:"http"});
 
+var txNum, cntNum, sec;
+
 if(process.argv.length >=5){
-	var txNum = parseInt(process.argv[2]);
-	var cntNum = parseInt(process.argv[3]);
-	var sec = parseInt(process.argv[4]);
+	txNum = parseInt(process.argv[2]);
+	cntNum = parseInt(process.argv[3]);
+	sec = parseInt(process.argv[4]);
+	if(process.argv.length >5){
+		let default_gasPrice = parseInt(process.argv[5]);
+		require("./regTx").DEFAULT_GAS_PRICE(default_gasPrice);
+		cntTx.DEFAULT_GAS_PRICE(default_gasPrice);
+	}
 	
 }else {
-	console.log("Need more arguements: node app.js num_regTX num_cnt interval_duration(sec)")
+	console.log("Need more arguements: node app.js num_regTX num_cnt interval_duration(sec) [default gas price]")
 	return;
 }
 
