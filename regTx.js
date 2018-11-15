@@ -15,7 +15,7 @@ function getRandomTransaction(accounts, provider){
 
 	let rawTx = utils.getRawTx( _randomTxObj(accounts,from,to),accounts[from]);
 	//console.log(rawTx.rawTransaction);
-	return provider.sendRequest("regTx","eth_sendRawTransaction",[rawTx.rawTransaction]);
+	return provider.sendRequest("regTx-"+from,"eth_sendRawTransaction",[rawTx.rawTransaction]);
 }
 
 function _randomTxObj(accounts,from,to){
@@ -30,5 +30,6 @@ function _randomTxObj(accounts,from,to){
 
 module.exports = {
 	getRandomTransaction:getRandomTransaction,
-	DEFAULT_GAS_PRICE:(value)=>{DEFAULT_GAS_PRICE = value;}
+	DEFAULT_GAS_PRICE:(value)=>{DEFAULT_GAS_PRICE = value;},
+	updateAccounts:(accs)=>{accounts = accs;}
 }

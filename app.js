@@ -52,8 +52,8 @@ getAccountsNonces().then(()=>{
 	var loop = ()=>{
 		let regCount = 0, cntCount = 0;
 		let txCollection = new Array(txNum+cntNum);
-		while(regCount < txNum || cntCount < cntNum){
-			if(cntCount == cntNum||(regCount < txNum && Math.random() < 0.5)){
+		while((regCount < txNum && accounts.length >0) || cntCount < cntNum){
+			if(cntCount == cntNum ||(regCount < txNum && Math.random() < 0.5 && accounts.length > 0)){
 				txCollection[regCount+cntCount] = regTx(accounts,provider);
 				regCount++;
 			}else{
@@ -61,14 +61,28 @@ getAccountsNonces().then(()=>{
 				cntCount ++;
 			}
 		}
-		return Promise.all(txCollection);
+		return Promise.all(txCollection).then((resps)=>{
+			let invalidSet = new Set();
+			resps.forEach((resp)=>{
+				if(resp.result === undefined && /regTx/.test(resp.id)){
+					let invalidAcc = parseInt(resp.id.charAt(resp.id.length-2)=="1"?resp.id.charAt(resp.id.length-2):resp.id.charAt(resp.id.length-1));
+					invalidSet.add(invalidAcc);
+				}
+			})
+			accounts = accounts.filter((item,index)=>!invalidSet.has(index));
+			require("./regTx").updateAccounts(accounts);
+			return Promise.resolve();
+		});
 	}
 	let infinityLoop = setInterval(loop, sec*1000);
 
 	if(auto_stop && cntNum >0){
 
 		let stoppoint = 2+(default_gasPrice * accounts.length * 21000*(cntNum+txNum)*2).toString(16).length;
-		let owner = cntTx.owner().addr;
+		let owner  = accounts[0].addr;
+		if(cntNum >0)
+			owner = cntTx.owner().addr;
+
 		var checkBalLoop;
 		var checkBalanceLoop = ()=>{
 			console.log("\n\n\nI am in check balance interval\n\n\n"+stoppoint);
@@ -88,7 +102,7 @@ getAccountsNonces().then(()=>{
 			})
 			return Promise.resolve();
 		}
-		checkBalLoop = setInterval(checkBalanceLoop, 10*1000)
+		checkBalLoop = setInterval(checkBalanceLoop, 2*sec*1000);
 	}
 
 });

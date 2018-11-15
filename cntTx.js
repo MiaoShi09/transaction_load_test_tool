@@ -55,7 +55,7 @@ async function deployContract(provider,accounts) {
 		let deploy_txObj = {
 			data:code,
 			gasPrice:DEFAULT_GAS_PRICE,
-			gas:MIN_GAS*20,
+			gas:MIN_GAS*25,
 			nonce:owner.nonce++,
 			value:0
 		}
@@ -171,4 +171,5 @@ module.exports = {
 	owner:()=>{return owner},
 	contractAddress: contractAddress,
 	DEFAULT_GAS_PRICE:(value)=>{DEFAULT_GAS_PRICE = value;}
+	
 }
