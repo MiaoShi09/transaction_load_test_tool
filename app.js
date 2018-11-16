@@ -6,7 +6,7 @@ var contractAddresses;
 
 var regTx = require("./regTx").getRandomTransaction;
 var cntTx = require('./cntTx');
-var provider = new Provider({type:"http"});
+var provider = new Provider({type:"websocket"});
 
 var txNum, cntNum, sec,default_gasPrice;
 var auto_stop = true;

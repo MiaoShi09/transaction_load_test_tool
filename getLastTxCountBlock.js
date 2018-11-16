@@ -1,6 +1,6 @@
 var accounts = require("./accounts.json");
 const Provider = require("./utils/provider");
-var provider = new Provider({type:"http"});
+var provider = new Provider({type:"websocket"});
 
 
 var oneRequest =async ()=>{
@@ -13,4 +13,4 @@ var oneRequest =async ()=>{
 
 }
 
-var loop = setInterval(oneRequest, 10*1000);
+var loop = setInterval(oneRequest, 1*1000);
