@@ -11,6 +11,9 @@ var provider = new Provider({type:"http"});
 var txNum, cntNum, sec,default_gasPrice;
 var auto_stop = true;
 
+var dupTxChecker = {};
+
+// check arguments
 if(process.argv.length >=5){
 	txNum = parseInt(process.argv[2]);
 	cntNum = parseInt(process.argv[3]);
@@ -34,10 +37,18 @@ if(process.argv.length >=5){
 }
 
 
+
+accounts.forEach((acc)=>{
+	dupTxChecker[acc.addr] = new Set();
+})
+
+
+
 async function getAccountsNonces (){
 	for(let i = 0 ; i < accounts.length; i++){
 		let resp = await provider.sendRequest(accounts[i].addr,'eth_getTransactionCount',[accounts[i].addr]);
 		accounts[i].nonce = parseInt(resp.result);
+		dupTxChecker[accounts[i].addr].add(accounts[i].nonce);
 	}
 	return Promise.resolve();
 }
@@ -50,26 +61,45 @@ getAccountsNonces().then(()=>{
 }).then(()=>{
 	
 	var loop = ()=>{
+		if(accounts.length == 0) process.exit(0);
 		let regCount = 0, cntCount = 0;
 		let txCollection = new Array(txNum+cntNum);
 		while((regCount < txNum && accounts.length >0) || cntCount < cntNum){
 			if(cntCount == cntNum ||(regCount < txNum && Math.random() < 0.5 && accounts.length > 0)){
-				txCollection[regCount+cntCount] = regTx(accounts,provider);
+				let getTx = regTx(accounts,provider);
+				if(dupTxChecker[getTx[1]].has(getTx[2])){
+					console.log("[duplicate nonce] account :"+ getTx[1] + "\tnonce: "+ getTx[2]);
+					process.exit(1);
+				}else{
+					dupTxChecker[getTx[1]].add(getTx[2]);
+				}
+				txCollection[regCount+cntCount] = getTx[0];
 				regCount++;
 			}else{
-				txCollection[regCount+cntCount] = cntTx.callARandomMethod(provider);
+
+				let getcnt = cntTx.callARandomMethod(provider);
+				if(dupTxChecker[getcnt[1]].has(getcnt[2])){
+					console.log("[duplicate nonce] account :"+ getcnt[1] + "\tnonce: "+ getcnt[2]);
+					process.exit(1);
+				}else{
+					dupTxChecker[getcnt[1]].add(getcnt[2]);
+				}
+				txCollection[regCount+cntCount] = getcnt[0];
+
 				cntCount ++;
 			}
 		}
 		return Promise.all(txCollection).then((resps)=>{
 			let invalidSet = new Set();
 			resps.forEach((resp)=>{
+				//console.log(resp.result === undefined);
 				if(resp.result === undefined && /regTx/.test(resp.id)){
 					let invalidAcc = parseInt(resp.id.charAt(resp.id.length-2)=="1"?resp.id.charAt(resp.id.length-2):resp.id.charAt(resp.id.length-1));
 					invalidSet.add(invalidAcc);
 				}
 			})
 			accounts = accounts.filter((item,index)=>!invalidSet.has(index));
+			//console.log(accounts);
 			require("./regTx").updateAccounts(accounts);
 			return Promise.resolve();
 		});

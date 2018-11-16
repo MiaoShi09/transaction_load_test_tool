@@ -15,13 +15,13 @@ function getRandomTransaction(accounts, provider){
 
 	let rawTx = utils.getRawTx( _randomTxObj(accounts,from,to),accounts[from]);
 	//console.log(rawTx.rawTransaction);
-	return provider.sendRequest("regTx-"+from,"eth_sendRawTransaction",[rawTx.rawTransaction]);
+	return [provider.sendRequest("regTx-"+from,"eth_sendRawTransaction",[rawTx.rawTransaction]),accounts[from].addr, accounts[from].nonce];
 }
 
 function _randomTxObj(accounts,from,to){
 	return {
 		to: accounts[to].addr,
-		value: utils.generateRandomNum(20000),
+		value: 1,//utils.generateRandomNum(20000),
 		nonce: accounts[from].nonce++,
 		gasPrice: DEFAULT_GAS_PRICE,
 		gas: DEFAULT_GAS

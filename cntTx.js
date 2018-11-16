@@ -120,7 +120,7 @@ async function callARandomMethod(provider){
 
 	let rawTx = utils.getRawTx(_txObj,owner);
 	//console.log(rawTx.rawTransaction);
-	return provider.sendRequest(oneFunc,"eth_sendRawTransaction",[rawTx.rawTransaction]);
+	return [provider.sendRequest(oneFunc,"eth_sendRawTransaction",[rawTx.rawTransaction]),owner.addr,owner.nonce];
 };
 
 
