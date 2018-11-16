@@ -28,8 +28,24 @@ function _randomTxObj(accounts,from,to){
 	}
 }
 
+function getSimpleTransaction(accounts, provider){
+	let from, to;
+	let accRange = accounts.length;
+	
+	from = 0;
+	to = utils.generateRandomNum(accRange-1);
+	
+	let rawTx = utils.getRawTx( _randomTxObj(accounts,from,to),accounts[from]);
+
+	//console.log(rawTx.rawTransaction);
+	return [provider.sendRequest("regTx-"+from,"eth_sendRawTransaction",[rawTx.rawTransaction]),accounts[from].addr, accounts[from].nonce];
+}
+
+
+
 module.exports = {
 	getRandomTransaction:getRandomTransaction,
 	DEFAULT_GAS_PRICE:(value)=>{DEFAULT_GAS_PRICE = value;},
-	updateAccounts:(accs)=>{accounts = accs;}
+	updateAccounts:(accs)=>{accounts = accs;},
+	getSimpleTransaction:getSimpleTransaction
 }

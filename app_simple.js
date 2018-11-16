@@ -4,7 +4,7 @@ var process = require('process');
 var accounts = require("./accounts.json");
 var contractAddresses;
 
-var regTx = require("./regTx").getRandomTransaction;
+var regTx = require("./regTx").getSimpleTransaction;
 var cntTx = require('./cntTx');
 var provider = new Provider({type:"http"});
 
@@ -30,6 +30,7 @@ if(process.argv.length >=5){
 	if(process.argv.length >6){
 		auto_stop = typeof JSON.parse(process.argv[6]) == "boolean"? JSON.parse(process.argv[6]): auto_stop;
 	}
+
 	
 }else {
 	console.log("Need more arguements: node app.js num_regTX num_cnt interval_duration(sec) [default gas price]")
@@ -61,8 +62,8 @@ getAccountsNonces().then(()=>{
 }).then(()=>{
 	
 	var loop = ()=>{
-		if(accounts.length == 0) process.exit(0);
 		if(txNum+cntNum==0) process.exit(0);
+		if(accounts.length == 0) process.exit(0);
 		let regCount = 0, cntCount = 0;
 		let txCollection = new Array(txNum+cntNum);
 		while((regCount < txNum && accounts.length >0) || cntCount < cntNum){
@@ -86,68 +87,34 @@ getAccountsNonces().then(()=>{
 					dupTxChecker[getcnt[1]].add(getcnt[2]);
 				}
 				txCollection[regCount+cntCount] = getcnt[0];
-
 				cntCount ++;
 			}
 		}
 		return Promise.all(txCollection).then((resps)=>{
-			//let invalidSet = new Set();
-			for(let i = 0; i < resps.length; i++){
-				//console.log(resp.result === undefined);
-				let resp = resps[i];
-				if(resp.result === undefined && /regTx/.test(resp.id)){
-//					let invalidAcc = parseInt(resp.id.charAt(resp.id.length-2)=="1"?resp.id.charAt(resp.id.length-2):resp.id.charAt(resp.id.length-1));
-//					invalidSet.add(invalidAcc);
-					console.log('[Error in Response] stop the loop');
-					clearInterval(infinityLoop);
-					break;
-				}
-			}
-//			accounts = accounts.filter((item,index)=>!invalidSet.has(index));
-			//console.log(accounts);
-//			require("./regTx").updateAccounts(accounts);
+			let invalidSet = new Set();
+			//try{
+				resps.forEach((resp)=>{
+					//console.log(resp.result === undefined);
+					if(resp.result === undefined){
+						invalidSet.add(resp);
+					}
+				})
+			// }catch(e){
+			// 	process.exit();
+			// }
+			if(invalidSet.size>0) clearInterval(infinityLoop);
 			return Promise.resolve();
-		});
-	}
-	let infinityLoop = setInterval(loop, sec*1000);
-
-	if(auto_stop && cntNum >0){
-
-		let stoppoint = 2+(default_gasPrice * accounts.length * 21000*(cntNum+txNum)*2).toString(16).length;
-		let owner  = accounts[0].addr;
-		if(cntNum >0)
-			owner = cntTx.owner().addr;
-
-		var checkBalLoop;
-		var checkBalanceLoop = ()=>{
-			console.log("\n\n\nI am in check balance interval\n\n\n"+stoppoint);
-			provider.sendRequest("check contract owner's balance","eth_getBalance",[owner]).then((resp)=>{
-				console.log(resp);
-				console.log(resp.result.length + "\n\n\n");
-				if(resp.result!==undefined && resp.result.length <= stoppoint){
-					console.log("\n !![Low Balance Warning] The contract owner's balance is relatively low.");
-					clearInterval(infinityLoop);
-					clearInterval(checkBalLoop);
-				}
-
-			},(err)=>{
-				console.log("\n [stop loop] terminate loop by error",error);
-				clearInterval(infinityLoop);
-				clearInterval(checkBalLoop);
-			})
-			return Promise.resolve();
-		}
-		checkBalLoop = setInterval(checkBalanceLoop, 2*sec*1000);
+		})
 	}
 
+	
+		let infinityLoop = setInterval(loop, sec*1000);
+	
+	
 });
+
 
 process.on("exit",()=>{
 	//console.log("dupSet:"+ dupTxChecker[accounts[0].addr]);
-	//dupTxChecker[accounts[0].addr].forEach(console.log);
-
-	accounts.forEach((acc,index)=>{
-		console.log(acc.addr);
-		dupTxChecker[acc.addr].forEach(console.log);
-	})
+	dupTxChecker[accounts[0].addr].forEach(console.log);
 })
