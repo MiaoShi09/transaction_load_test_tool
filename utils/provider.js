@@ -30,7 +30,6 @@ class Provider{
 	sendRequest(id,method,params,timeout){
 		return this.provider(this.path, id, method, params, this.rpc_version, this.logger,timeout);
 	}
-	
 }
 
 module.exports = Provider;

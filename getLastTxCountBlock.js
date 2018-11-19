@@ -13,4 +13,25 @@ var oneRequest =async ()=>{
 
 }
 
-var loop = setInterval(oneRequest, 1*1000);
+var loop = setInterval(oneRequest, 10*1000);
+
+
+
+
+var closeProcessHandler = ()=>{
+	
+	provider.closeConnections();
+
+}
+// process.on("exit",closeProcessHandler);
+
+
+// //catches ctrl+c event
+// process.on('SIGINT', closeProcessHandler);
+
+// // catches "kill pid" (for example: nodemon restart)
+// process.on('SIGUSR1', closeProcessHandler);
+// process.on('SIGUSR2', closeProcessHandler);
+
+// //catches uncaught exceptions
+// process.on('uncaughtException', closeProcessHandler);

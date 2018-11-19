@@ -10,8 +10,9 @@ var provider = new Provider({type:"websocket"});
 
 var txNum, cntNum, sec,default_gasPrice;
 var auto_stop = true;
-
+var round = -1;
 var dupTxChecker = {};
+var loops = [];
 
 // check arguments
 if(process.argv.length >=5){
@@ -29,6 +30,7 @@ if(process.argv.length >=5){
 	}
 	if(process.argv.length >6){
 		auto_stop = typeof JSON.parse(process.argv[6]) == "boolean"? JSON.parse(process.argv[6]): auto_stop;
+		round = typeof JSON.parse(process.argv[6]) == 'number'? JSON.parse(process.argv[6]): round;
 	}
 	
 }else {
@@ -61,6 +63,14 @@ getAccountsNonces().then(()=>{
 }).then(()=>{
 	
 	var loop = ()=>{
+		if(round == 0) {
+			loops.forEach((lp)=>{
+					clearInterval(lp);
+			})
+			delete loops;
+			return;
+		}
+		round --;
 		if(accounts.length == 0) process.exit(0);
 		if(txNum+cntNum==0) process.exit(0);
 		let regCount = 0, cntCount = 0;
@@ -90,6 +100,8 @@ getAccountsNonces().then(()=>{
 				cntCount ++;
 			}
 		}
+
+		console.log("\n\n\n\n\n generate transaction Number : "+txCollection.length);
 		return Promise.all(txCollection).then((resps)=>{
 			//let invalidSet = new Set();
 			for(let i = 0; i < resps.length; i++){
@@ -99,7 +111,10 @@ getAccountsNonces().then(()=>{
 //					let invalidAcc = parseInt(resp.id.charAt(resp.id.length-2)=="1"?resp.id.charAt(resp.id.length-2):resp.id.charAt(resp.id.length-1));
 //					invalidSet.add(invalidAcc);
 					console.log('[Error in Response] stop the loop');
-					clearInterval(infinityLoop);
+					loops.forEach((lp)=>{
+						clearInterval(lp);
+					})
+					delete loops;
 					break;
 				}
 			}
@@ -110,6 +125,7 @@ getAccountsNonces().then(()=>{
 		});
 	}
 	let infinityLoop = setInterval(loop, sec*1000);
+	loops.push(infinityLoop);
 
 	if(auto_stop && cntNum >0){
 
@@ -126,28 +142,55 @@ getAccountsNonces().then(()=>{
 				console.log(resp.result.length + "\n\n\n");
 				if(resp.result!==undefined && resp.result.length <= stoppoint){
 					console.log("\n !![Low Balance Warning] The contract owner's balance is relatively low.");
-					clearInterval(infinityLoop);
-					clearInterval(checkBalLoop);
+					loops.forEach((lp)=>{
+						clearInterval(lp);
+					})
+					delete loops;
 				}
 
 			},(err)=>{
 				console.log("\n [stop loop] terminate loop by error",error);
-				clearInterval(infinityLoop);
-				clearInterval(checkBalLoop);
+					loops.forEach((lp)=>{
+						clearInterval(lp);
+					})
+					delete loops;
 			})
 			return Promise.resolve();
 		}
 		checkBalLoop = setInterval(checkBalanceLoop, 2*sec*1000);
+		loops.push(checkBalLoop);
 	}
 
 });
 
-process.on("exit",()=>{
-	//console.log("dupSet:"+ dupTxChecker[accounts[0].addr]);
-	//dupTxChecker[accounts[0].addr].forEach(console.log);
 
+
+var closeProcessHandler = ()=>{
 	accounts.forEach((acc,index)=>{
-		console.log(acc.addr);
-		dupTxChecker[acc.addr].forEach(console.log);
-	})
-})
+			console.log(acc.addr);
+			let str = ""
+			dupTxChecker[acc.addr].forEach((value1,value2,set)=>{
+				str += value1 + "\t";
+			});
+			console.log(str);
+		});
+	//provider.closeConnections();
+	if(loops != undefined){
+		loops.forEach((lp)=>{
+					clearInterval(lp);
+				})
+				delete loops;
+	}
+}
+process.on("exit",closeProcessHandler);
+
+
+//catches ctrl+c event
+process.on('SIGINT', closeProcessHandler);
+
+// catches "kill pid" (for example: nodemon restart)
+process.on('SIGUSR1', closeProcessHandler);
+process.on('SIGUSR2', closeProcessHandler);
+
+//catches uncaught exceptions
+process.on('uncaughtException', closeProcessHandler);
