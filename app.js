@@ -13,7 +13,7 @@ var auto_stop = true;
 var round = -1;
 var dupTxChecker = {};
 var loops = [];
-
+var timestamp = Date.now();
 // check arguments
 if(process.argv.length >=5){
 	txNum = parseInt(process.argv[2]);
@@ -102,6 +102,8 @@ getAccountsNonces().then(()=>{
 		}
 
 		console.log("\n\n\n\n\n generate transaction Number : "+txCollection.length);
+		console.log("time gap from last execution:"+ (Date.now()-timestamp) +" ms");
+		timestamp = Date.now();
 		return Promise.all(txCollection).then((resps)=>{
 			//let invalidSet = new Set();
 			for(let i = 0; i < resps.length; i++){
