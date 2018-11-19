@@ -14,6 +14,7 @@ var round = -1;
 var dupTxChecker = {};
 var loops = [];
 var timestamp = Date.now();
+var totalTxCount = 0;
 // check arguments
 if(process.argv.length >=5){
 	txNum = parseInt(process.argv[2]);
@@ -104,20 +105,23 @@ getAccountsNonces().then(()=>{
 		console.log("\n\n\n\n\n generate transaction Number : "+txCollection.length);
 		console.log("time gap from last execution:"+ (Date.now()-timestamp) +" ms");
 		timestamp = Date.now();
+		totalTxCount += txCollection.length;
 		return Promise.all(txCollection).then((resps)=>{
 			//let invalidSet = new Set();
-			for(let i = 0; i < resps.length; i++){
-				//console.log(resp.result === undefined);
-				let resp = resps[i];
-				if(resp.result === undefined && /regTx/.test(resp.id)){
-//					let invalidAcc = parseInt(resp.id.charAt(resp.id.length-2)=="1"?resp.id.charAt(resp.id.length-2):resp.id.charAt(resp.id.length-1));
-//					invalidSet.add(invalidAcc);
-					console.log('[Error in Response] stop the loop');
-					loops.forEach((lp)=>{
-						clearInterval(lp);
-					})
-					delete loops;
-					break;
+			if(auto_stop){
+				for(let i = 0; i < resps.length; i++){
+					//console.log(resp.result === undefined);
+					let resp = resps[i];
+					if(resp.result === undefined && /regTx/.test(resp.id)){
+	//					let invalidAcc = parseInt(resp.id.charAt(resp.id.length-2)=="1"?resp.id.charAt(resp.id.length-2):resp.id.charAt(resp.id.length-1));
+	//					invalidSet.add(invalidAcc);
+						console.log('[Error in Response] stop the loop');
+						loops.forEach((lp)=>{
+							clearInterval(lp);
+						})
+						delete loops;
+						break;
+					}
 				}
 			}
 //			accounts = accounts.filter((item,index)=>!invalidSet.has(index));
@@ -177,6 +181,8 @@ var closeProcessHandler = ()=>{
 			console.log(str);
 		});
 	//provider.closeConnections();
+
+	console.log("\n[Total Transaction Counts]\t"+ totalTxCount);
 	if(loops != undefined){
 		loops.forEach((lp)=>{
 					clearInterval(lp);
