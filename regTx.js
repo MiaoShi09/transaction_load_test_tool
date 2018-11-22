@@ -12,8 +12,8 @@ function getRandomTransaction(accounts, provider){
 		from = utils.generateRandomNum(accRange)-1;
 		to = utils.generateRandomNum(accRange)-1;
 	}while(to == from);
-
-	let rawTx = utils.getRawTx( _randomTxObj(accounts,from,to),accounts[from]);
+	let txObj=  _randomTxObj(accounts,from,to);
+	let rawTx = utils.getRawTx(txObj,accounts[from]);
 	//console.log(rawTx.rawTransaction);
 	return [provider.sendRequest("regTx-"+from,"eth_sendRawTransaction",[rawTx.rawTransaction]),accounts[from].addr, accounts[from].nonce];
 }
@@ -34,7 +34,8 @@ function getSimpleTransaction(accounts, provider){
 	
 	from = 0;
 	to = utils.generateRandomNum(accRange-1);
-	
+	let txObj=  _randomTxObj(accounts,from,to);
+
 	let rawTx = utils.getRawTx( _randomTxObj(accounts,from,to),accounts[from]);
 
 	//console.log(rawTx.rawTransaction);

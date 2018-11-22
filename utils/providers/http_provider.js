@@ -24,7 +24,7 @@ var http_provider = (endpoint, request_id, request_method, request_params,rpc_ve
 				}else{
 					logger.log("[HTTP_PROVIDER ERROR]:");
 					logger.log(provider.responseText);
-					reject(Error(JSON.parse(provider.responseText)));
+					reject(provider.responseText);
 				}
 			}
 		}

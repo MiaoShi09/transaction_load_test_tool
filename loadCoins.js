@@ -16,7 +16,10 @@ if(process.argv.length > 4){
 	amount = "0x"+parseInt(process.argv[4]).toString(16);
 }
 if(process.argv.length > 5){
-	accounts = [accounts[parseInt(process.argv[5])]];
+	if(process.argv[5].length == 66 && /^0x/.test(process.argv[5]))
+		accounts = [{addr:process.argv[5]}];
+	else
+		accounts = [accounts[parseInt(process.argv[5])]];
 }
 
 console.log("[Each Tx amount]"+amount);
