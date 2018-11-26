@@ -14,15 +14,16 @@ function getRandomTransaction(accounts, provider){
 	}while(to == from);
 	let txObj=  _randomTxObj(accounts,from,to);
 	let rawTx = utils.getRawTx(txObj,accounts[from]);
-	//console.log(rawTx.rawTransaction);
-	return [provider.sendRequest("regTx-"+from,"eth_sendRawTransaction",[rawTx.rawTransaction]),accounts[from].addr, accounts[from].nonce];
+	// console.log(DEFAULT_GAS_PRICE);
+	// console.log(txObj);
+	return [provider.sendRequest("regTx-"+from,"eth_sendRawTransaction",[rawTx.rawTransaction]),accounts[from].addr, accounts[from].nonce+accounts[from].current];
 }
 
 function _randomTxObj(accounts,from,to){
 	return {
 		to: accounts[to].addr,
 		value: 1,//utils.generateRandomNum(20000),
-		nonce: accounts[from].nonce++,
+		nonce: accounts[from].nonce+(accounts[from].current++),
 		gasPrice: DEFAULT_GAS_PRICE,
 		gas: DEFAULT_GAS
 	}
@@ -39,7 +40,7 @@ function getSimpleTransaction(accounts, provider){
 	let rawTx = utils.getRawTx( _randomTxObj(accounts,from,to),accounts[from]);
 
 	//console.log(rawTx.rawTransaction);
-	return [provider.sendRequest("regTx-"+from,"eth_sendRawTransaction",[rawTx.rawTransaction]),accounts[from].addr, accounts[from].nonce];
+	return [provider.sendRequest("regTx-"+from,"eth_sendRawTransaction",[rawTx.rawTransaction]),accounts[from].addr, accounts[from].nonce+accounts[from].current];
 }
 
 

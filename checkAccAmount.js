@@ -2,7 +2,7 @@
 var process = require('process');
 var accounts = require("./accounts.json");
 const Provider = require("./utils/provider");
-var provider = new Provider({type:"http"});
+var provider = new Provider({type:"ipc"});
 //var BN = require("bn.js");
 
 if(process.argv.length > 2 && /^0x/.test(process.argv[2])){

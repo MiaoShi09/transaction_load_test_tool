@@ -42,7 +42,7 @@ if(process.argv.length >=5){
 
 
 accounts.forEach((acc)=>{
-	nonceTracker[acc.addr] = [];
+	nonceTracker[acc.addr] = new Set();
 })
 
 
@@ -51,13 +51,15 @@ async function getAccountsNonces (){
 	for(let i = 0 ; i < accounts.length; i++){
 		let resp = await provider.sendRequest(accounts[i].addr,'eth_getTransactionCount',[accounts[i].addr]);
 		accounts[i].nonce = parseInt(resp.result);
-		accounts[i].lastNonce = accounts[i].nonce;
-		nonceTracker[accounts[i].addr].push(accounts[i].nonce);
+		accounts[i].current = 0;
+		nonceTracker[accounts[i].addr].add(accounts[i].nonce+accounts[i].current);
 	}
 	//console.log(accounts);
 	return Promise.resolve();
 }
 
+
+//main
 getAccountsNonces().then(()=>{
 	if(cntNum >0){
 		return cntTx.deployContract(provider,accounts);
@@ -78,32 +80,34 @@ getAccountsNonces().then(()=>{
 		if(txNum+cntNum==0) process.exit(0);
 		let regCount = 0, cntCount = 0;
 		let txCollection = new Array(txNum+cntNum);
-		let dupTxChecker = {};
-		accounts.forEach((acc)=>{
-			dupTxChecker[acc.addr] = new Set();
-		})
+		//let dupTxChecker = {};
+		// accounts.forEach((acc)=>{
+		// 	dupTxChecker[acc.addr] = new Set();
+		// })
 
 		while((regCount < txNum && accounts.length >0) || cntCount < cntNum){
 			if(cntCount == cntNum ||(regCount < txNum && Math.random() < 0.5 && accounts.length > 0)){
 				let getTx = regTx(accounts,provider);
-				if(dupTxChecker[getTx[1]].has(getTx[2])){
-					console.log("[duplicate nonce] account :"+ getTx[1] + "\tnonce: "+ getTx[2]);
-					process.exit(1);
-				}else{
-					dupTxChecker[getTx[1]].add(getTx[2]);
-				}
+				// if(dupTxChecker[getTx[1]].has(getTx[2])){
+				// 	console.log("[duplicate nonce] account :"+ getTx[1] + "\tnonce: "+ getTx[2]);
+				// 	process.exit(1);
+				// }else{
+					nonceTracker[getTx[1]].add(getTx[2]);
+				// }
 				txCollection[regCount+cntCount] = getTx[0];
 				regCount++;
 			}else{
 
 				let getcnt = cntTx.callARandomMethod(provider);
-				if(dupTxChecker[getcnt[1]].has(getcnt[2])){
-					console.log("[duplicate nonce] account :"+ getcnt[1] + "\tnonce: "+ getcnt[2]);
-					process.exit(1);
-				}else{
-					dupTxChecker[getcnt[1]].add(getcnt[2]);
-				}
+				// if(dupTxChecker[getcnt[1]].has(getcnt[2])){
+				// 	console.log("[duplicate nonce] account :"+ getcnt[1] + "\tnonce: "+ getcnt[2]);
+				// 	process.exit(1);
+				// }else{
+					nonceTracker[getcnt[1]].add(getcnt[2]);
+				// }
+
 				txCollection[regCount+cntCount] = getcnt[0];
+				cntCount++;
 			}
 		}
 
@@ -132,18 +136,16 @@ getAccountsNonces().then(()=>{
 			}
 			
 
-			if(onError){
+			if(!onError){
 				//reset the nonce, "resend" entire tx set
 				accounts.forEach((acc,index)=>{
-					accounts[index].nonce = acc.lastNonce;
+					accounts[index].current = 0;
 				});
 			}else{
 				//update the lastNonce and nonceTracker
 				accounts.forEach((acc,index)=>{
-					accounts[index].lastNonce = acc.nonce;
-					dupTxChecker[acc.addr].forEach((value1,value2,set)=>{
-						nonceTracker[acc.addr].push(value1);
-					})
+					accounts[index].nonce = acc.nonce+acc.current;
+					accounts[index].current = 0;
 				});
 				totalTxCount += (cntNum+txNum);
 			}
@@ -155,7 +157,7 @@ getAccountsNonces().then(()=>{
 			})
 
 			accounts.forEach((acc,index)=>{
-					accounts[index].nonce = acc.lastNonce;
+					accounts[index].current = 0;
 				});
 
 			setTimeout(()=>{
@@ -199,10 +201,10 @@ getAccountsNonces().then(()=>{
 
 			},(err)=>{
 				console.log("\n [stop loop] terminate loop by error",error);
-					loops.forEach((lp)=>{
-						clearInterval(lp.interval);
-					})
-					delete loops;
+				loops.forEach((lp)=>{
+					clearInterval(lp.interval);
+				})
+				delete loops;
 			})
 			return Promise.resolve();
 		}
@@ -218,7 +220,7 @@ var closeProcessHandler = ()=>{
 	accounts.forEach((acc,index)=>{
 			console.log(acc.addr);
 			let str = ""
-			nonceTracker[acc.addr].forEach((value1,index)=>{
+			nonceTracker[acc.addr].forEach((value1,value2,set)=>{
 				str += value1 + "\t";
 			});
 			console.log(str);
