@@ -6,7 +6,7 @@ var contractAddresses;
 
 var regTx = require("./regTx1").getRandomTransaction;
 var cntTx = require('./cntTx');
-var provider = new Provider({type:"websocket"});
+var provider = new Provider({type:"http"});
 
 var txNum, cntNum, sec,default_gasPrice;
 var auto_stop = true;
@@ -22,7 +22,7 @@ if(process.argv.length >=5){
 	sec = parseInt(process.argv[4]);
 	if(process.argv.length >5){
 		default_gasPrice = parseInt(process.argv[5]);
-		if(default_gasPrice !=NaN){
+		if(!isNaN(default_gasPrice)){
 			require("./regTx").DEFAULT_GAS_PRICE(default_gasPrice);
 			cntTx.DEFAULT_GAS_PRICE(default_gasPrice);
 		}else{
@@ -50,6 +50,7 @@ accounts.forEach((acc)=>{
 async function getAccountsNonces (){
 	for(let i = 0 ; i < accounts.length; i++){
 		let resp = await provider.sendRequest(accounts[i].addr,'eth_getTransactionCount',[accounts[i].addr]);
+		console.log("\n\n\n"+resp.result);
 		accounts[i].nonce = parseInt(resp.result);
 		dupTxChecker[accounts[i].addr].add(accounts[i].nonce);
 	}

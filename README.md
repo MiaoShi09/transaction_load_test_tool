@@ -5,6 +5,8 @@ add test accounts.json into tool directory.
 + install dependencies, run : 
 ```bash
  $ npm install
+ $ cd packages/aion-lib
+ $ npm install
 ```
 + *transfer value to test account*:
 ```bash
@@ -21,12 +23,12 @@ $ node checkAccAmount.js
 ```
 + *run tool*:
 ```bash
-$ node app.js [number of reg tx] [number of cnt tx] [loop_interval] [[Gas_price] [auto_stop|total_interval]]
+$ node app_noInterval.js [number of reg tx] [number of cnt tx] [pause_time] [[Gas_price] [auto_stop|total_interval]]
 ```
 
 	+ [number of reg tx]: integer; the number of regular transaction
 	+ [number of cnt tx]: integer; the number of contract transaction
-	+ [loop_interval]: integer; the duration (in second) of each interval
+	+ [pause_time]: integer; the duration (in ms) to pause between two intervals
 	+ [Gas_price]: optional. default value: 10^10. put NaN value to using default value;
 	+ [auto_stop|total_interval]: optional. auto_stop default value is true: stop the script when any regular transaction encourt an error or the contract owner's balance are relatively low;
 	total_interval default value is -1: run script until it hits an error. total_interval = 3 meaning the script will run 3 times; it will send 3 * (number of reg tx]+[number of cnt tx]) transactions

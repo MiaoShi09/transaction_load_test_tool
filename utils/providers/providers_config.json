@@ -1,6 +1,6 @@
 {
-	"default":"http://127.0.0.1:8545",
-	"http":"http://127.0.0.1:8545",
+	"default":"127.0.0.1:8545",
+	"http":"127.0.0.1:8545",
 	"websocket":"http://127.0.0.1:8546",
 	"ipc":"/.aion/jsonrpc.ipc"
 

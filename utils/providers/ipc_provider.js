@@ -14,17 +14,19 @@ module.exports = (path,request_id,request_method,request_params,rpc_version,logg
 			let HOME = process.env.HOME;
 			connection = net.connect({path:HOME+path});
 			var result;
-			if(!connection.writable) connection.connect({path:path});
-			connection.write(JSON.stringify(requestBody(request_id,request_method,request_params,rpc_version)));
+			
 			connection.on('data',(data)=>{
 				logger.log("[IPC Response Buffer]:");
-				logger.log(data);
 				data = data.toString('ascii');
 				logger.log("[IPC Response]:");
 				logger.log(data);
 				resolve(JSON.parse(data));
 				connection.end();
 			});
+
+			if(!connection.writable) connection.connect({path:path});
+			connection.write(JSON.stringify(requestBody(request_id,request_method,request_params,rpc_version)));
+
 		}catch(e){
 			logger.log("[IPC_PROVIDER ERROR]:");
 			logger.log(e);
