@@ -16,7 +16,7 @@ function getRandomTransaction(accounts, provider){
 	let rawTx = utils.getRawTx(txObj,accounts[from]);
 	// console.log(DEFAULT_GAS_PRICE);
 	// console.log(txObj);
-	return [provider.sendRequest("regTx-"+from,"eth_sendRawTransaction",[rawTx.rawTransaction]),accounts[from].addr, accounts[from].nonce];
+	return [provider.sendRequest("regTx-"+from+"-"+accounts[from].nonce,"eth_sendRawTransaction",[rawTx.rawTransaction]),accounts[from].addr, accounts[from].nonce];
 }
 
 function _randomTxObj(accounts,from,to){

@@ -14,7 +14,7 @@ var round = -1;
 var dupTxChecker = {};
 var loops = [];
 var timestamp = Date.now();
-var totalTxCount = 0;
+//var totalTxCount = 0;
 // check arguments
 if(process.argv.length >=5){
 	txNum = parseInt(process.argv[2]);
@@ -106,7 +106,7 @@ getAccountsNonces().then(()=>{
 		console.log("\n\n\n\n\n generate transaction Number : "+txCollection.length);
 		console.log("time gap from last execution:"+ (Date.now()-timestamp) +" ms");
 		timestamp = Date.now();
-		totalTxCount += txCollection.length;
+		//totalTxCount += txCollection.length;
 		return Promise.all(txCollection).then((resps)=>{
 			//let invalidSet = new Set();
 			if(auto_stop){
@@ -129,6 +129,13 @@ getAccountsNonces().then(()=>{
 			//console.log(accounts);
 //			require("./regTx").updateAccounts(accounts);
 			return Promise.resolve();
+		},(error)=>{
+			if(auto_stop){
+				loops.forEach((lp)=>{
+					clearInterval(lp);
+				})
+				delete loops;
+			}
 		});
 	}
 	let infinityLoop = setInterval(loop, sec*1000);
@@ -173,6 +180,7 @@ getAccountsNonces().then(()=>{
 
 
 var closeProcessHandler = ()=>{
+	let totalTxCount = 0;
 	accounts.forEach((acc,index)=>{
 			console.log(acc.addr);
 			let str = ""
@@ -180,6 +188,7 @@ var closeProcessHandler = ()=>{
 				str += value1 + "\t";
 			});
 			console.log(str);
+			totalTxCount += dupTxChecker[acc.addr].size;
 		});
 	//provider.closeConnections();
 

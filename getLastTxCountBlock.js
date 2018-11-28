@@ -1,6 +1,6 @@
 var accounts = require("./accounts.json");
 const Provider = require("./utils/provider");
-var provider = new Provider({type:"websocket"});
+var provider = new Provider({type:"ipc"});
 
 
 var oneRequest =async ()=>{

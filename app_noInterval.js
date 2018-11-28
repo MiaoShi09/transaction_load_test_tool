@@ -127,22 +127,22 @@ var Once = (rd)=>{
 			}
 			
 
-			if(!onError){
-				// console.log("---------------no error-------------------");
-				//reset the nonce, "resend" entire tx set
+			// if(!onError){
+			// 	// console.log("---------------no error-------------------");
+			// 	//reset the nonce, "resend" entire tx set
 				accounts.forEach((acc,index)=>{
 					accounts[index].nonce = acc.nonce+acc.current;
 					accounts[index].current = 0;
 				});
-			}else{
-				//update the lastNonce and nonceTracker
+			// }else{
+			// 	//update the lastNonce and nonceTracker
 				
-				accounts.forEach((acc,index)=>{
+			// 	accounts.forEach((acc,index)=>{
 					
-					accounts[index].current = 0;
-				});
-				//totalTxCount += (cntNum+txNum);
-			}
+			// 		accounts[index].current = 0;
+			// 	});
+			// 	//totalTxCount += (cntNum+txNum);
+			// }
 
 			return Promise.resolve();
 		},(error)=>{

@@ -1,5 +1,5 @@
 #! /bin/bash
-node app_noInterval.js 30 0 1 x 400
+node app_resend.js 60 0 1 x false
 
 # real	5m30.775s
 # user	2m12.311s
