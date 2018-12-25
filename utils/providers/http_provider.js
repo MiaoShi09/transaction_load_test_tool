@@ -45,7 +45,7 @@ var http_provider = (endpoint, request_id, request_method, request_params,rpc_ve
 			res.setEncoding('utf8')
 			res.on("data",(data)=>{
 				resp= data;
-				//logger.log("[HTTP Response]");
+				logger.log("[HTTP Response]");
 				logger.log(resp)
 				
 			});
@@ -56,12 +56,12 @@ var http_provider = (endpoint, request_id, request_method, request_params,rpc_ve
 		});
 
 		req.on("error",(e)=>{
-			//logger.log("[HTTP ERROR]");
-			//logger.log(e);
+			logger.log("[HTTP ERROR]");
+			logger.log(e);
 			reject(e);
 		})
 		let payload = JSON.stringify(requestBody(request_id,request_method,request_params,rpc_version));
-		//logger.log(payload);
+		logger.log(payload);
 		req.write(payload);
 		req.end();
 	});

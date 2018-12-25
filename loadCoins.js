@@ -1,6 +1,6 @@
 var process = require('process');
 const Provider = require("./utils/provider");
-var provider = new Provider({type:"http"});
+var provider = new Provider({type:"websocket"});
 var accounts = require("./accounts.json");
 
 var originAcc = "";

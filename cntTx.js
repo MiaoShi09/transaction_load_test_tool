@@ -103,7 +103,7 @@ async function deployContract(provider,accounts) {
 
 
 
-async function callARandomMethod(provider){
+function callARandomMethod(provider){
 	
 	let oneFunc = funcs[utils.generateRandomNum(funcs.length)-1];
 	console.log("["+oneFunc+"] called :")
@@ -119,7 +119,9 @@ async function callARandomMethod(provider){
 	_txObj = helper.prepareContractCall(_funcMap[oneFunc](),_txObj,_abi.func[oneFunc]);
 
 	let rawTx = utils.getRawTx(_txObj,owner);
-	//console.log(rawTx.rawTransaction);
+	console.log(_txObj);
+	console.log(owner.addr);
+	console.log(owner.nonce);
 	return [provider.sendRequest(oneFunc,"eth_sendRawTransaction",[rawTx.rawTransaction]),owner.addr,owner.nonce];
 };
 

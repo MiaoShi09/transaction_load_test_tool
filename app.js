@@ -22,8 +22,10 @@ if(process.argv.length >=5){
 	sec = parseInt(process.argv[4]);
 	if(process.argv.length >5){
 		default_gasPrice = parseInt(process.argv[5]);
+
 		if(!isNaN(default_gasPrice)){
-			require("./regTx").DEFAULT_GAS_PRICE(default_gasPrice);
+
+			require("./regTx1").DEFAULT_GAS_PRICE(default_gasPrice);
 			cntTx.DEFAULT_GAS_PRICE(default_gasPrice);
 		}else{
 			default_gasPrice = 10000000000;
@@ -82,36 +84,34 @@ getAccountsNonces().then(()=>{
 				let getTx = regTx(accounts,provider);
 				if(dupTxChecker[getTx[1]].has(getTx[2])){
 					console.log("[duplicate nonce] account :"+ getTx[1] + "\tnonce: "+ getTx[2]);
-					process.exit(1);
 				}else{
 					dupTxChecker[getTx[1]].add(getTx[2]);
 				}
 				txCollection[regCount+cntCount] = getTx[0];
 				regCount++;
 			}else{
-
+				
 				let getcnt = cntTx.callARandomMethod(provider);
 				if(dupTxChecker[getcnt[1]].has(getcnt[2])){
 					console.log("[duplicate nonce] account :"+ getcnt[1] + "\tnonce: "+ getcnt[2]);
-					process.exit(1);
 				}else{
 					dupTxChecker[getcnt[1]].add(getcnt[2]);
 				}
 				txCollection[regCount+cntCount] = getcnt[0];
 
 				cntCount ++;
+				
 			}
+			
 		}
 
 		console.log("\n\n\n\n\n generate transaction Number : "+txCollection.length);
 		console.log("time gap from last execution:"+ (Date.now()-timestamp) +" ms");
 		timestamp = Date.now();
-		//totalTxCount += txCollection.length;
 		return Promise.all(txCollection).then((resps)=>{
-			//let invalidSet = new Set();
 			if(auto_stop){
 				for(let i = 0; i < resps.length; i++){
-					//console.log(resp.result === undefined);
+		
 					let resp = resps[i];
 					if(resp.result === undefined && /regTx/.test(resp.id)){
 	//					let invalidAcc = parseInt(resp.id.charAt(resp.id.length-2)=="1"?resp.id.charAt(resp.id.length-2):resp.id.charAt(resp.id.length-1));
@@ -126,10 +126,10 @@ getAccountsNonces().then(()=>{
 				}
 			}
 //			accounts = accounts.filter((item,index)=>!invalidSet.has(index));
-			//console.log(accounts);
 //			require("./regTx").updateAccounts(accounts);
 			return Promise.resolve();
 		},(error)=>{
+			console.log(error);
 			if(auto_stop){
 				loops.forEach((lp)=>{
 					clearInterval(lp);
@@ -140,7 +140,7 @@ getAccountsNonces().then(()=>{
 	}
 	let infinityLoop = setInterval(loop, sec*1000);
 	loops.push(infinityLoop);
-
+	console.log(loops.length +"\t"+ auto_stop);
 	if(auto_stop && cntNum >0){
 
 		let stoppoint = 2+(default_gasPrice * accounts.length * 21000*(cntNum+txNum)*2).toString(16).length;
@@ -171,10 +171,10 @@ getAccountsNonces().then(()=>{
 			})
 			return Promise.resolve();
 		}
-		checkBalLoop = setInterval(checkBalanceLoop, 2*sec*1000);
+		checkBalLoop = setInterval(checkBalanceLoop, 20000*sec*1000);
 		loops.push(checkBalLoop);
 	}
-
+	console.log("\t"+loops.length +"\t"+ auto_stop);
 });
 
 
@@ -200,6 +200,29 @@ var closeProcessHandler = ()=>{
 				delete loops;
 	}
 }
+var closeWithError = (err)=>{
+	console.log(err);
+	let totalTxCount = 0;
+	accounts.forEach((acc,index)=>{
+			console.log(acc.addr);
+			let str = ""
+			dupTxChecker[acc.addr].forEach((value1,value2,set)=>{
+				str += value1 + "\t";
+			});
+			console.log(str);
+			totalTxCount += dupTxChecker[acc.addr].size;
+		});
+	//provider.closeConnections();
+
+	console.log("\n[Total Transaction Counts]\t"+ totalTxCount);
+	if(loops != undefined){
+		loops.forEach((lp)=>{
+					clearInterval(lp);
+				})
+				delete loops;
+	}
+
+}
 process.on("exit",closeProcessHandler);
 
 
@@ -211,4 +234,6 @@ process.on('SIGUSR1', closeProcessHandler);
 process.on('SIGUSR2', closeProcessHandler);
 
 //catches uncaught exceptions
-process.on('uncaughtException', closeProcessHandler);
+
+process.on('uncaughtException', closeWithError);
+
