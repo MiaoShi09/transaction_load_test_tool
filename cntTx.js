@@ -9,7 +9,7 @@ var funcs = [];
 var contractName, owner, _accounts,contractAddress;
 var _abi = {func:{},event:{},constructor:{}};
 var MIN_GAS = 21000; //
-var MAX_GAS = 1000000//2000000;
+var MAX_GAS = 2000000;
 var DEFAULT_GAS_PRICE = 10000000000;
 
 
@@ -43,9 +43,9 @@ async function deployContract(provider,accounts) {
 				}
 			});
 			//console.log("\n\n\n\n\nabi\n\n\n\n\n\n");
-			console.log(JSON.stringify(_abi));
+			//console.log(JSON.stringify(_abi));
 
-			owner = _accounts[utils.generateRandomNum(_accounts.length)-1];
+			owner = _accounts[0];
 			code += utils.getContractConstrData(_abi.constructor,_funcMap.MyToken());
 			resolve();
 		});
@@ -55,7 +55,7 @@ async function deployContract(provider,accounts) {
 		let deploy_txObj = {
 			data:code,
 			gasPrice:DEFAULT_GAS_PRICE,
-			gas:MIN_GAS*25,
+			gas:5000000,
 			nonce:owner.nonce++,
 			value:0
 		}
@@ -69,7 +69,7 @@ async function deployContract(provider,accounts) {
 			var counter = 0;
 			var loop = setInterval(async()=>{
 				let res  = await provider.sendRequest("check receipt", "eth_getTransactionReceipt",[txHash]);
-				console.log(res);
+				//console.log(res);
 				counter++;
 				if(res.result !==undefined && res.result != null){
 					//console.log("\n\n\n\n0s0s0s0s0s0s0s0\n\n\n")
@@ -106,12 +106,12 @@ async function deployContract(provider,accounts) {
 function callARandomMethod(provider){
 	
 	let oneFunc = funcs[utils.generateRandomNum(funcs.length)-1];
-	console.log("["+oneFunc+"] called :")
+	//console.log("["+oneFunc+"] called :")
 	let _txObj = {
 		to:contractAddress,
 		gasPrice:DEFAULT_GAS_PRICE,
 		value:0,
-		gas: MIN_GAS+5000+utils.generateRandomNum(MAX_GAS/2-MIN_GAS),
+		gas: MAX_GAS,//MIN_GAS+5000+utils.generateRandomNum(MAX_GAS/2-MIN_GAS),
 		nonce:owner.nonce++,
 	};
 
@@ -119,9 +119,9 @@ function callARandomMethod(provider){
 	_txObj = helper.prepareContractCall(_funcMap[oneFunc](),_txObj,_abi.func[oneFunc]);
 
 	let rawTx = utils.getRawTx(_txObj,owner);
-	console.log(_txObj);
-	console.log(owner.addr);
-	console.log(owner.nonce);
+	//console.log(_txObj);
+	//console.log(owner.addr);
+	//console.log(owner.nonce);
 	return [provider.sendRequest(oneFunc,"eth_sendRawTransaction",[rawTx.rawTransaction]),owner.addr,owner.nonce];
 };
 
@@ -138,27 +138,27 @@ var _funcMap = {
 	]},
 
 	approve:()=>{return [
-		_accounts[utils.generateRandomNum(_accounts.length)-1].addr,
+		_accounts[utils.generateRandomNum(_accounts.length-1)].addr,
 		utils.generateRandomNum(100000)
 	]},
 
 	transferFrom:()=>{return [
-		_accounts[utils.generateRandomNum(_accounts.length)-1].addr,
-		_accounts[utils.generateRandomNum(_accounts.length)-1].addr,
+		_accounts[utils.generateRandomNum(_accounts.length-1)].addr,
+		_accounts[utils.generateRandomNum(_accounts.length-1)].addr,
 		utils.generateRandomNum(100000)
 	]},
 	balanceOf:()=>{return [
-		_accounts[utils.generateRandomNum(_accounts.length)-1].addr
+		_accounts[utils.generateRandomNum(_accounts.length-1)].addr
 	]},
 
 	transfer:()=>{return [
-		_accounts[utils.generateRandomNum(_accounts.length)-1].addr,
+		_accounts[utils.generateRandomNum(_accounts.length-1)].addr,
 		utils.generateRandomNum(100000)
 	]},
 
 	allowance:()=>{return [
-		_accounts[utils.generateRandomNum(_accounts.length)-1].addr,
-		_accounts[utils.generateRandomNum(_accounts.length)-1].addr
+		_accounts[utils.generateRandomNum(_accounts.length-1)].addr,
+		_accounts[utils.generateRandomNum(_accounts.length-1)].addr
 	]},
 
 	name:()=>{return []},

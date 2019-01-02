@@ -52,7 +52,6 @@ accounts.forEach((acc)=>{
 async function getAccountsNonces (){
 	for(let i = 0 ; i < accounts.length; i++){
 		let resp = await provider.sendRequest(accounts[i].addr,'eth_getTransactionCount',[accounts[i].addr]);
-		console.log("\n\n\n"+resp.result);
 		accounts[i].nonce = parseInt(resp.result);
 		dupTxChecker[accounts[i].addr].add(accounts[i].nonce);
 	}
@@ -68,6 +67,7 @@ getAccountsNonces().then(()=>{
 	
 	var loop = ()=>{
 		if(round == 0) {
+			console.log(round)
 			loops.forEach((lp)=>{
 					clearInterval(lp);
 			})
@@ -79,6 +79,7 @@ getAccountsNonces().then(()=>{
 		if(txNum+cntNum==0) process.exit(0);
 		let regCount = 0, cntCount = 0;
 		let txCollection = new Array(txNum+cntNum);
+		console.log("before transaction owners nonce: ",accounts[0].nonce)
 		while((regCount < txNum && accounts.length >0) || cntCount < cntNum){
 			if(cntCount == cntNum ||(regCount < txNum && Math.random() < 0.5 && accounts.length > 0)){
 				let getTx = regTx(accounts,provider);
@@ -104,6 +105,8 @@ getAccountsNonces().then(()=>{
 			}
 			
 		}
+
+		console.log("\nafter transaction owners nonce: ",accounts[0].nonce)
 
 		console.log("\n\n\n\n\n generate transaction Number : "+txCollection.length);
 		console.log("time gap from last execution:"+ (Date.now()-timestamp) +" ms");
@@ -143,17 +146,16 @@ getAccountsNonces().then(()=>{
 	console.log(loops.length +"\t"+ auto_stop);
 	if(auto_stop && cntNum >0){
 
-		let stoppoint = 2+(default_gasPrice * accounts.length * 21000*(cntNum+txNum)*2).toString(16).length;
+		let stoppoint = 2*(default_gasPrice * accounts.length * 2000000* cntNum).toString(16).length;
 		let owner  = accounts[0].addr;
 		if(cntNum >0)
 			owner = cntTx.owner().addr;
 
 		var checkBalLoop;
 		var checkBalanceLoop = ()=>{
-			console.log("\n\n\nI am in check balance interval\n\n\n"+stoppoint);
+			console.log("\n\n\n\t\t\tI am in check balance interval\n\n\n"+stoppoint);
 			provider.sendRequest("check contract owner's balance","eth_getBalance",[owner]).then((resp)=>{
-				console.log(resp);
-				console.log(resp.result.length + "\n\n\n");
+				
 				if(resp.result!==undefined && resp.result.length <= stoppoint){
 					console.log("\n !![Low Balance Warning] The contract owner's balance is relatively low.");
 					loops.forEach((lp)=>{
@@ -171,7 +173,7 @@ getAccountsNonces().then(()=>{
 			})
 			return Promise.resolve();
 		}
-		checkBalLoop = setInterval(checkBalanceLoop, 20000*sec*1000);
+		checkBalLoop = setInterval(checkBalanceLoop, 20*sec*1000);
 		loops.push(checkBalLoop);
 	}
 	console.log("\t"+loops.length +"\t"+ auto_stop);
@@ -181,16 +183,17 @@ getAccountsNonces().then(()=>{
 
 var closeProcessHandler = ()=>{
 	let totalTxCount = 0;
+	console.log(round);
 	accounts.forEach((acc,index)=>{
-			console.log(acc.addr);
-			let str = ""
-			dupTxChecker[acc.addr].forEach((value1,value2,set)=>{
-				str += value1 + "\t";
-			});
-			console.log(str);
-			totalTxCount += dupTxChecker[acc.addr].size;
+		console.log(acc.addr);
+		let str = ""
+		dupTxChecker[acc.addr].forEach((value1,value2,set)=>{
+			str += value1 + "\t";
 		});
-	//provider.closeConnections();
+		console.log(str);
+		totalTxCount += dupTxChecker[acc.addr].size;
+	});
+//provider.closeConnections();
 
 	console.log("\n[Total Transaction Counts]\t"+ totalTxCount);
 	if(loops != undefined){
@@ -202,24 +205,25 @@ var closeProcessHandler = ()=>{
 }
 var closeWithError = (err)=>{
 	console.log(err);
+	console.log(round);
 	let totalTxCount = 0;
 	accounts.forEach((acc,index)=>{
-			console.log(acc.addr);
-			let str = ""
-			dupTxChecker[acc.addr].forEach((value1,value2,set)=>{
-				str += value1 + "\t";
-			});
-			console.log(str);
-			totalTxCount += dupTxChecker[acc.addr].size;
+		console.log(acc.addr);
+		let str = ""
+		dupTxChecker[acc.addr].forEach((value1,value2,set)=>{
+			str += value1 + "\t";
 		});
+		console.log(str);
+		totalTxCount += dupTxChecker[acc.addr].size;
+	});
 	//provider.closeConnections();
 
 	console.log("\n[Total Transaction Counts]\t"+ totalTxCount);
 	if(loops != undefined){
 		loops.forEach((lp)=>{
-					clearInterval(lp);
-				})
-				delete loops;
+			clearInterval(lp);
+		})
+		delete loops;
 	}
 
 }

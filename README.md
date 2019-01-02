@@ -34,3 +34,8 @@ $ node app_noInterval.js [number of reg tx] [number of cnt tx] [pause_time] [[Ga
 	total_interval default value is -1: run script until it hits an error. total_interval = 3 meaning the script will run 3 times; it will send 3 * (number of reg tx]+[number of cnt tx]) transactions
 
 + *check*
+
++ *app_dummy.js*
+```bash
+$ node app_dummy.js [number_of_reg_tx] [pause_time] [Gas_price] [from_account_index] [provider_type]
+```
