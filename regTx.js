@@ -5,17 +5,16 @@ var helper = require("./utils/helper.js");
 var DEFAULT_GAS = 21000;
 var DEFAULT_GAS_PRICE = 10000000000;
 
-function getRandomTransaction(accounts, provider){
-	let from, to;
+function getRandomTransaction(accounts, provider,from,to){
+
 	let accRange = accounts.length;
 	do{
-		from = utils.generateRandomNum(accRange)-1;
-		to = utils.generateRandomNum(accRange)-1;
+		from = from===undefined ? (utils.generateRandomNum(accRange)-1) : from;
+		to = to === undefined ? (utils.generateRandomNum(accRange-1)) : to;
 	}while(to == from);
 	let txObj=  _randomTxObj(accounts,from,to);
 	let rawTx = utils.getRawTx(txObj,accounts[from]);
-	// console.log(DEFAULT_GAS_PRICE);
-	// console.log(txObj);
+	
 	return [provider.sendRequest("regTx-"+from,"eth_sendRawTransaction",[rawTx.rawTransaction]),accounts[from].addr, accounts[from].nonce+accounts[from].current];
 }
 
